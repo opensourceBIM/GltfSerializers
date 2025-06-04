@@ -147,8 +147,15 @@ public class BinaryGltfSerializer extends BinaryGltfBaseSerializer {
 		translationChildrenNode = OBJECT_MAPPER.createArrayNode();
 		translationNode.set("children", translationChildrenNode);
 		translationNode.set("translation", modelTranslation);
+
+		ArrayNode scaleNode = OBJECT_MAPPER.createArrayNode();
+		float scale = (float) (getProjectInfo().getMultiplierToMm() / 1000.f);
+		scaleNode.add(scale);
+		scaleNode.add(scale);
+		scaleNode.add(scale);
+		translationNode.set("scale", scaleNode);
+
 		ObjectNode rotationNode = OBJECT_MAPPER.createObjectNode();
-		
 		ArrayNode rotation = OBJECT_MAPPER.createArrayNode();
 		ArrayNode rotationChildrenNode = OBJECT_MAPPER.createArrayNode();
 		rotationChildrenNode.add("translationNode");
@@ -484,6 +491,7 @@ public class BinaryGltfSerializer extends BinaryGltfBaseSerializer {
 		float[] changes = new float[3];
 		for (int i=0; i<3; i++) {
 			changes[i] = (max[i] - min[i]) / 2.0f + min[i];
+			changes[i] *= (float) (getProjectInfo().getMultiplierToMm() / 1000.0f);
 		}
 		return changes;
 	}
