@@ -83,6 +83,7 @@ public class BinaryGltfSerializer extends BinaryGltfBaseSerializer {
 	
 	float[] min = {Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE};
 	float[] max = {-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
+	float scaleToMeter;
 	private ArrayNode modelTranslation;
 	private ObjectNode materials;
 	private ObjectNode shaders;
@@ -149,10 +150,9 @@ public class BinaryGltfSerializer extends BinaryGltfBaseSerializer {
 		translationNode.set("translation", modelTranslation);
 
 		ArrayNode scaleNode = OBJECT_MAPPER.createArrayNode();
-		float scale = (float) (getProjectInfo().getMultiplierToMm() / 1000.f);
-		scaleNode.add(scale);
-		scaleNode.add(scale);
-		scaleNode.add(scale);
+		scaleNode.add(scaleToMeter);
+		scaleNode.add(scaleToMeter);
+		scaleNode.add(scaleToMeter);
 		translationNode.set("scale", scaleNode);
 
 		ObjectNode rotationNode = OBJECT_MAPPER.createObjectNode();
@@ -227,6 +227,7 @@ public class BinaryGltfSerializer extends BinaryGltfBaseSerializer {
 		String colorsBufferView = null;
 		
 		scenesNode.set("defaultScene", createDefaultScene());
+		scaleToMeter = getProjectInfo().getMultiplierToMm() / 1000.f;
 		createModelNode();
 
 		for (IfcProduct ifcProduct : model.getAllWithSubTypes(IfcProduct.class)) {
@@ -243,7 +244,7 @@ public class BinaryGltfSerializer extends BinaryGltfBaseSerializer {
 				updateExtends(geometryInfo, matrix);
 			}
 		}
-		
+
 		float[] offsets = getOffsets();
 		
 		// This will "normalize" the model by moving it's axis-aligned bounding box center to the 0-point. This will always be the wrong position, but at least the building will be close to the 0-point
@@ -490,8 +491,7 @@ public class BinaryGltfSerializer extends BinaryGltfBaseSerializer {
 	private float[] getOffsets() {
 		float[] changes = new float[3];
 		for (int i=0; i<3; i++) {
-			changes[i] = (max[i] - min[i]) / 2.0f + min[i];
-			changes[i] *= (float) (getProjectInfo().getMultiplierToMm() / 1000.0f);
+			changes[i] = ((max[i] - min[i]) / 2.0f + min[i]) * scaleToMeter;
 		}
 		return changes;
 	}

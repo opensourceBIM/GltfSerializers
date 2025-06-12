@@ -80,6 +80,7 @@ public class BinaryGltfSerializer2 extends BinaryGltfBaseSerializer {
 	
 	double[] min = {Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE};
 	double[] max = {-Double.MAX_VALUE, -Double.MAX_VALUE, -Double.MAX_VALUE};
+	double scaleToMeter;
 	private ArrayNode modelTranslation;
 	private ArrayNode materials;
 	
@@ -144,10 +145,9 @@ public class BinaryGltfSerializer2 extends BinaryGltfBaseSerializer {
 		translationNode.set("translation", modelTranslation);
 
 		ArrayNode scaleNode = OBJECT_MAPPER.createArrayNode();
-		float scale = (float) (getProjectInfo().getMultiplierToMm() / 1000.f);
-		scaleNode.add(scale);
-		scaleNode.add(scale);
-		scaleNode.add(scale);
+		scaleNode.add(scaleToMeter);
+		scaleNode.add(scaleToMeter);
+		scaleNode.add(scaleToMeter);
 		translationNode.set("scale", scaleNode);
 
 		ObjectNode rotationNode = OBJECT_MAPPER.createObjectNode();
@@ -235,6 +235,7 @@ public class BinaryGltfSerializer2 extends BinaryGltfBaseSerializer {
 		
 		scenesNode.add(createDefaultScene());
 		gltfNode.put("scene", 0);
+		scaleToMeter = getProjectInfo().getMultiplierToMm() / 1000;
 		createModelNode();
 
 		for (IfcProduct ifcProduct : model.getAllWithSubTypes(IfcProduct.class)) {
@@ -386,8 +387,7 @@ public class BinaryGltfSerializer2 extends BinaryGltfBaseSerializer {
 	private double[] getOffsets() {
 		double[] changes = new double[3];
 		for (int i=0; i<3; i++) {
-			changes[i] = (max[i] - min[i]) / 2.0f + min[i];
-			changes[i] *= (float) (getProjectInfo().getMultiplierToMm() / 1000.0f);
+			changes[i] = ((max[i] - min[i]) / 2.0f + min[i]) * scaleToMeter;
 		}
 		return changes;
 	}
